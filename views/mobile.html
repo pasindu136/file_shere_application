@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Orbit Mobile</title>
+    <style>
+        :root { --bg-color: #000000; --card-bg: #1c1c1e; --primary: #6366f1; --text-main: #ffffff; --text-sub: #8e8e93; --nav-bg: rgba(28, 28, 30, 0.95); }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .app-header { padding: 20px; text-align: center; }
+        .app-header h1 { font-size: 20px; font-weight: 700; color: var(--text-main); margin: 0; }
+        .storage-badge { background: rgba(255, 255, 255, 0.1); padding: 5px 12px; border-radius: 20px; font-size: 12px; color: var(--text-sub); margin-top: 5px; display: inline-block; }
+        
+        .content-area { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; display: none; }
+        .content-area.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--card-bg); border-radius: 18px; padding: 20px; margin-bottom: 20px; text-align: center; }
+        
+        /* LOGIN */
+        #view-login { display: flex; flex-direction: column; justify-content: center; height: 100%; z-index: 200; position: absolute; top: 0; left: 0; width: 100%; background: var(--bg-color); }
+        .pin-input { font-size: 32px; text-align: center; width: 200px; background: transparent; border: none; border-bottom: 2px solid var(--primary); color: white; margin: 20px auto; outline: none; letter-spacing: 5px; }
+        
+        /* REMEMBER ME CHECKBOX */
+        .remember-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; color: var(--text-sub); font-size: 14px; }
+        .remember-box input { transform: scale(1.3); accent-color: var(--primary); }
+
+        /* COMMON UI */
+        .upload-circle { width: 140px; height: 140px; background: rgba(99,102,241,0.1); border: 2px dashed var(--primary); border-radius: 50%; margin: 20px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--primary); }
+        input[type="file"] { display: none; }
+        .btn-main { background: var(--primary); color: white; border: none; width: 100%; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 600; margin-top: 10px; cursor: pointer;}
+        .file-row { display: flex; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 12px 16px; border-radius: 12px; margin-bottom: 10px; }
+        .file-name { font-size: 14px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-dl { background: rgba(255,255,255,0.1); color: var(--primary); padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+        .text-area { width: 100%; height: 120px; background: #2c2c2e; border: none; border-radius: 12px; color: white; padding: 15px; font-size: 16px; margin-bottom: 10px; outline: none; }
+        
+        /* PROGRESS BAR */
+        .progress-wrapper { margin-top: 20px; display: none; }
+        .progress-track { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { width: 0%; height: 100%; background: var(--primary); transition: width 0.2s; }
+        
+        /* REMOTE & MEDIA */
+        .remote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .btn-remote { background: #333; color: white; border: none; border-radius: 16px; padding: 25px; font-size: 20px; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .btn-remote:active { background: var(--primary); transform: scale(0.95); }
+        
+        .media-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; align-items: center; margin-top: 10px;}
+        .btn-play { background: var(--primary); grid-column: 2; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3); }
+        .btn-play:active { transform: scale(0.95); }
+        .vol-controls { display: flex; justify-content: space-between; margin-top: 20px; background: #2c2c2e; border-radius: 12px; padding: 5px; }
+        .btn-vol { flex: 1; background: transparent; border: none; color: white; padding: 15px; font-size: 18px; cursor: pointer; }
+        .btn-vol:active { color: var(--primary); }
+
+        /* VIDEO */
+        video { width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: black; }
+
+        /* NAV */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--nav-bg); backdrop-filter: blur(10px); display: none; padding: 10px 0 25px 0; border-top: 1px solid rgba(255,255,255,0.1); justify-content: space-between; }
+        .bottom-nav.show { display: flex; }
+        .nav-item { flex: 1; background: none; border: none; color: var(--text-sub); font-size: 9px; text-align: center; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item svg { display: block; margin: 0 auto 4px; width: 22px; height: 22px; }
+        
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 25px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .toast.show { opacity: 1; bottom: 100px; }
+    </style>
+</head>
+<body>
+    <div id="view-login" class="active">
+        <div style="text-align: center; padding: 40px;">
+            <h1 style="color: var(--primary); font-size: 28px; margin-bottom: 10px;">Security Check</h1>
+            <p style="color: var(--text-sub); margin-bottom: 40px;">Enter the 4-digit PIN shown on your PC.</p>
+            
+            <input type="tel" id="pinInput" class="pin-input" maxlength="4" placeholder="0000">
+            
+            <label class="remember-box">
+                <input type="checkbox" id="rememberMe" checked>
+                Remember this device
+            </label>
+
+            <button class="btn-main" onclick="attemptLogin()">Unlock</button>
+            <p id="login-error" style="color: #ff453a; margin-top: 20px; display: none;">Invalid PIN</p>
+        </div>
+    </div>
+    
+    <div id="main-header" class="app-header" style="display:none;">
+        <h1>Orbit</h1>
+        <div id="storage-info" class="storage-badge">PC Storage: Checking...</div>
+    </div>
+    
+    <div id="view-send" class="content-area">
+        <div class="card">
+            <h2>Send Files</h2>
+            <label class="upload-circle"><input type="file" id="fileInput" multiple><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></label>
+            <p id="fileName" style="font-size:13px; color:var(--text-sub);">Tap to select</p>
+            <div id="progress-container" class="progress-wrapper"><div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div><div style="display: flex; justify-content: space-between;"><span id="progress-percent" style="font-size:12px;">0%</span><span style="font-size:12px;">Uploading...</span></div></div>
+            <button id="sendBtn" class="btn-main" onclick="uploadFiles()">Send Files</button>
+        </div>
+    </div>
+
+    <div id="view-receive" class="content-area"><div class="card"><div style="display:flex; justify-content:space-between; margin-bottom:15px;"><h2>Downloads</h2><button onclick="fetchFiles()" style="background:none; border:none; color:var(--primary);">Refresh</button></div><div id="pc-files"><p style="text-align:center; color:#555;">Loading...</p></div></div></div>
+    
+    <div id="view-text" class="content-area"><div class="card"><h2>Clipboard</h2><textarea id="mobile-text" class="text-area" placeholder="Type here..."></textarea><button class="btn-main" onclick="sendText()">Send to PC</button><button class="btn-main" style="background:transparent; border:1px solid var(--primary); color:var(--primary);" onclick="getText()">Paste from PC</button></div></div>
+    
+    <div id="view-stream" class="content-area">
+        <div class="card">
+            <h2><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: bottom; margin-right: 5px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Cinema</h2>
+            <p id="stream-name" style="color:var(--text-sub); font-size:13px; margin-bottom:15px;">No video streaming from PC</p>
+            <video id="video-player" controls playsinline></video>
+            <button class="btn-main" onclick="checkStream()" style="margin-top:20px;">Refresh Stream</button>
+        </div>
+    </div>
+
+    <div id="view-remote" class="content-area">
+        <div class="card">
+            <h3 style="color:#888; font-size:12px; margin-bottom:15px;">MEDIA CONTROLS</h3>
+            <div class="media-controls">
+                <button class="btn-remote" onclick="sendKey('left')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><polygon points="20 4 20 20 14 12 20 4"></polygon></svg></button>
+                <button class="btn-remote btn-play" onclick="sendKey('space')"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
+                <button class="btn-remote" onclick="sendKey('right')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
+            </div>
+            <div class="vol-controls">
+                <button class="btn-vol" onclick="sendKey('down')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg></button>
+                <button class="btn-vol" onclick="sendKey('m')">MUTE</button>
+                <button class="btn-vol" onclick="sendKey('up')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
+            </div>
+             <div style="display:flex; gap:10px; margin-top:15px;"><button class="btn-remote" style="flex:1; padding:15px;" onclick="sendKey('f')">FULLSCREEN</button></div>
+        </div>
+        <div class="card">
+            <h3 style="color:#888; font-size:12px; margin-bottom:15px;">PRESENTATION</h3>
+            <div class="remote-grid">
+                <button class="btn-remote" style="grid-column: span 2; background: #2c2c2e;" onclick="sendKey('right')">NEXT SLIDE ➔</button>
+                <button class="btn-remote" onclick="sendKey('left')">⬅ PREV</button>
+                <button class="btn-remote" onclick="sendKey('b')">BLANK</button>
+            </div>
+            <button class="btn-main" style="background: #333;" onclick="sendKey('esc')">End Show</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('send')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>Send</button>
+        <button class="nav-item" onclick="switchTab('receive')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>Get</button>
+        <button class="nav-item" onclick="switchTab('text')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Text</button>
+        <button class="nav-item" onclick="switchTab('stream')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>Play</button>
+        <button class="nav-item" onclick="switchTab('remote')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>Ctrl</button>
+    </div>
+    <div id="toast" class="toast">Success</div>
+
+    <script>
+        let authToken = '';
+        
+        // --- ON LOAD: CHECK SESSION ---
+        window.onload = async () => {
+            const savedToken = localStorage.getItem('orbit_token');
+            if(savedToken) {
+                authToken = savedToken;
+                // Verify if token is still valid with a quick status check
+                try {
+                    const res = await apiFetch('/status', { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ battery: 100, deviceName: 'Mobile' })
+                    });
+                    
+                    if(res.ok) {
+                        // Token is valid, show app directly
+                        const data = await res.json();
+                        document.getElementById('storage-info').innerText = `PC Storage: ${data.pcFree}GB Free`;
+                        showApp();
+                    } else {
+                        throw new Error("Invalid Token");
+                    }
+                } catch (e) {
+                    // Token invalid (Server restarted?), clear it and show login
+                    localStorage.removeItem('orbit_token');
+                    authToken = '';
+                }
+            }
+        };
+
+        function showApp() {
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById('bottom-nav').classList.add('show');
+            switchTab('send');
+            setInterval(updateStatus, 10000); // Start Heartbeat
+        }
+
+        function logout() {
+            localStorage.removeItem('orbit_token');
+            location.reload(); // Reload to show login
+        }
+
+        // --- AUTHENTICATION ---
+        async function attemptLogin() { 
+            const pin = document.getElementById('pinInput').value; 
+            if(pin.length!==4) return; 
+            try { 
+                const res = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({pin}) }); 
+                const data = await res.json(); 
+                if(data.success) { 
+                    authToken = data.token; 
+                    
+                    // SAVE TOKEN IF CHECKED
+                    if(document.getElementById('rememberMe').checked) {
+                        localStorage.setItem('orbit_token', authToken);
+                    }
+
+                    if(data.pcName) document.querySelector('#main-header h1').innerText = data.pcName; 
+                    showApp();
+                } else { 
+                    document.getElementById('login-error').style.display='block'; 
+                } 
+            } catch { alert("Failed"); } 
+        }
+
+        // --- SECURE FETCH (AUTO LOGOUT ON 401) ---
+        async function apiFetch(url, opt={}) { 
+            if(!opt.headers) opt.headers={}; 
+            opt.headers['x-auth-token'] = authToken; 
+            
+            const response = await fetch(url, opt);
+            if(response.status === 401) {
+                // Token Expired / Invalid
+                logout();
+                throw new Error("Unauthorized");
+            }
+            return response;
+        }
+
+        // --- STATUS HEARTBEAT ---
+        async function updateStatus() {
+            if(!authToken) return;
+            try {
+                let batteryLevel = 100; if(navigator.getBattery) { const b = await navigator.getBattery(); batteryLevel = Math.round(b.level * 100); }
+                const res = await apiFetch('/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ battery: batteryLevel, deviceName: 'Mobile' }) });
+                if(res.ok) { const data = await res.json(); document.getElementById('storage-info').innerText = `PC Storage: ${data.pcFree}GB Free`; }
+            } catch (e) {}
+        }
+
+        // --- TABS & UI ---
+        function switchTab(t) { 
+            document.querySelectorAll('.content-area').forEach(e=>e.classList.remove('active')); 
+            document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); 
+            document.getElementById(`view-${t}`).classList.add('active'); 
+            const mapping = {'send':0, 'receive':1, 'text':2, 'stream':3, 'remote':4}; 
+            document.querySelectorAll('.nav-item')[mapping[t]].classList.add('active'); 
+            if(t === 'stream') checkStream();
+        }
+        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        
+        // --- FEATURES ---
+        const fi=document.getElementById('fileInput'); fi.addEventListener('change',()=>document.getElementById('fileName').innerText=fi.files.length+" file(s)");
+        function uploadFiles() { if(!fi.files.length) return showToast("Select files"); const sb=document.getElementById('sendBtn'), pc=document.getElementById('progress-container'), pb=document.getElementById('progress-bar'), pt=document.getElementById('progress-percent'); sb.style.display='none'; pc.style.display='block'; pb.style.width='0%'; pt.innerText='0%'; const fd=new FormData(); for(let f of fi.files) fd.append('files',f); const xhr=new XMLHttpRequest(); xhr.upload.onprogress=(e)=>{ if(e.lengthComputable){ const p=Math.round((e.loaded/e.total)*100); pb.style.width=p+'%'; pt.innerText=p+'%'; }}; xhr.onload=()=>{ sb.style.display='block'; pc.style.display='none'; if(xhr.status===200){ showToast("Sent!"); fi.value=""; document.getElementById('fileName').innerText="Tap to select"; } else showToast("Failed"); }; xhr.onerror=()=>{ sb.style.display='block'; pc.style.display='none'; showToast("Error"); }; xhr.open('POST','/upload'); xhr.setRequestHeader('x-auth-token',authToken); xhr.send(fd); }
+        async function fetchFiles() { const c=document.getElementById('pc-files'); c.innerHTML='Loading...'; try { const res=await apiFetch('/list-files'); if(!res.ok) throw new Error(); const f=await res.json(); c.innerHTML=f.length?f.map(x=>`<div class="file-row"><span class="file-name">${x.name}</span><button class="btn-dl" data-url="/download/${x.id}">Get</button></div>`).join(''):'<p style="text-align:center;color:#555;">No files</p>'; document.querySelectorAll('.btn-dl').forEach(b=>{ b.onclick=async()=>{ const r=await apiFetch(b.dataset.url); if(r.ok){ const blob=await r.blob(), url=window.URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download=b.parentElement.querySelector('.file-name').innerText; document.body.appendChild(a); a.click(); a.remove(); }}}); } catch { c.innerHTML='Error'; } }
+        async function sendText() { const t=document.getElementById('mobile-text').value; try { await apiFetch('/clipboard/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})}); showToast("Sent!"); } catch { showToast("Error"); } }
+        async function getText() { try { const r=await apiFetch('/clipboard/get'); const d=await r.json(); document.getElementById('mobile-text').value=d.text; showToast("Pasted!"); } catch { showToast("Error"); } }
+        async function sendKey(k) { if(navigator.vibrate) navigator.vibrate(40); try { await apiFetch('/remote/input', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:k}) }); } catch { showToast("Failed"); } }
+
+        async function checkStream() {
+            try {
+                const res = await apiFetch('/stream/info');
+                const data = await res.json();
+                const player = document.getElementById('video-player');
+                if (data.active) {
+                    document.getElementById('stream-name').innerHTML = `Now Playing: <br><b style="color:white;">${data.name}</b>`;
+                    const streamUrl = `/stream/video`;
+                    if (!player.src.includes(streamUrl)) { player.src = streamUrl; player.play(); }
+                } else {
+                    document.getElementById('stream-name').innerText = "No video selected on PC";
+                    player.pause(); player.removeAttribute('src'); player.load();
+                }
+            } catch (e) { console.log(e); }
+        }
+    </script>
+</body>
+</html>

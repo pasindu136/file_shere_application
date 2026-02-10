@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit Share</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo"><i class="fa-solid fa-satellite-dish"></i> Orbit</div>
+        <div class="nav-btn active" onclick="showSection('connect', this)"><i class="fa-solid fa-qrcode"></i> Connect</div>
+        <div class="nav-btn" onclick="showSection('files', this)"><i class="fa-regular fa-folder-open"></i> File Manager</div>
+        <div class="nav-btn" onclick="showSection('stream', this)"><i class="fa-solid fa-clapperboard"></i> Stream</div>
+        <div class="nav-btn" onclick="showSection('clipboard', this)"><i class="fa-regular fa-clipboard"></i> Clipboard</div>
+        <div class="nav-btn" onclick="showSection('settings', this)"><i class="fa-solid fa-gear"></i> Settings</div>
+
+        <div id="device-status-box" style="margin-top: auto; background: #27272a; padding: 15px; border-radius: 12px; display: none; align-items: center; gap: 10px; border: 1px solid #3f3f46;">
+            <div style="width: 10px; height: 10px; background: #30d158; border-radius: 50%; box-shadow: 0 0 5px #30d158;"></div>
+            <div id="device-status-text" style="color: white; font-size: 13px;">Waiting...</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="connect" class="section active">
+            <div class="header-title"><h1>Connect Device</h1><p>Scan to pair your mobile device.</p></div>
+            
+            <div class="connect-container">
+                <div class="glow-bg"></div>
+
+                <div class="qr-wrapper">
+                    <img id="qr-image" src="" alt="QR Code">
+                    <div class="scan-line"></div> </div>
+
+                <div class="connect-info">
+                    <p class="pin-label">SECURITY PIN</p>
+                    <div id="pin-display" class="pin-box">----</div>
+                    <div id="ip-display" class="ip-pill">Detecting Network...</div>
+                </div>
+
+                <div class="steps-wrapper">
+                    <div class="step-item">
+                        <div class="step-icon"><i class="fa-solid fa-camera"></i></div>
+                        <span class="step-text">Scan QR</span>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="fa-solid fa-keyboard"></i></div>
+                        <span class="step-text">Enter PIN</span>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <span class="step-text">Connect</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="files" class="section">
+            <div class="header-title"><h1>File Manager</h1><p>Manage shared files.</p></div>
+            <div class="dashboard-grid">
+                <div class="card" id="drop-zone">
+                    <h2><i class="fa-solid fa-upload" style="color: var(--accent-color);"></i> &nbsp;Share to Mobile</h2>
+                    <div id="shared-list" class="file-list-area"><p style="text-align:center; color:#555; font-size:13px; margin-top:20px;">Drag & Drop files or folders here</p></div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="btn btn-secondary" onclick="shareFile()" style="flex:1;"><i class="fa-solid fa-file"></i> File</button>
+                        <button class="btn btn-secondary" onclick="shareFolder()" style="flex:1;"><i class="fa-solid fa-folder"></i> Folder</button>
+                    </div>
+                    <div class="drag-overlay"><i class="fa-solid fa-cloud-arrow-up"></i>&nbsp; Drop to Share</div>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-download" style="color: var(--success);"></i> &nbsp;Received Files</h2>
+                    <div id="pc-progress-container" style="display: none; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #a1a1aa; margin-bottom: 5px;"><span>Receiving...</span><span id="pc-progress-text">0%</span></div>
+                        <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden;"><div id="pc-progress-bar" style="width: 0%; height: 100%; background: #10b981; transition: width 0.1s;"></div></div>
+                    </div>
+                    <div id="file-list" class="file-list-area"><p style="text-align:center; color:#555; font-size:13px; margin-top:20px;">Waiting for files...</p></div>
+                    <button class="btn" onclick="openFolder()" style="background: #27272a; border: 1px solid var(--border-color);"><i class="fa-regular fa-folder-open"></i> Open Download Folder</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="stream" class="section">
+            <div class="header-title"><h1>Cinema Mode</h1><p>Stream videos directly to your mobile.</p></div>
+            <div class="center-container" style="height: 60%; justify-content: flex-start; padding-top: 40px;">
+                <div class="card" style="width: 100%; max-width: 600px; padding: 50px; align-items: center; text-align: center;">
+                    <div style="width: 90px; height: 90px; background: rgba(99, 102, 241, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
+                        <i class="fa-solid fa-play" style="font-size: 35px; color: var(--accent-color); margin-left: 5px;"></i>
+                    </div>
+                    <h2 style="font-size: 22px; margin-bottom: 10px;">Select Video to Stream</h2>
+                    <p id="stream-status" style="color: var(--text-muted); margin-bottom: 35px; font-size: 15px;">No video selected</p>
+                    <div style="display: flex; gap: 15px; width: 100%;">
+                        <button class="btn" onclick="startStream()" style="flex: 2;"><i class="fa-solid fa-folder-open"></i>&nbsp; Browse Video</button>
+                        <button class="btn btn-secondary" onclick="stopStream()" style="flex: 1; border-color: #ef4444; color: #ef4444;"><i class="fa-solid fa-stop"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="clipboard" class="section">
+            <div class="header-title"><h1>Clipboard Sync</h1><p>Share text between devices.</p></div>
+            <div class="card" style="max-width: 700px; margin: auto;">
+                <h2><i class="fa-solid fa-comment-dots" style="color: var(--accent-color);"></i> &nbsp;Text from Mobile</h2>
+                <textarea id="pc-clipboard" class="clipboard-area" placeholder="Received text will appear here..." readonly></textarea>
+            </div>
+        </div>
+
+        <div id="settings" class="section">
+            <div class="header-title"><h1>Settings</h1><p>Configure preferences & Info.</p></div>
+            
+            <div class="settings-container">
+                <div class="card">
+                    <label class="setting-label">PC Name (Visible on Mobile)</label>
+                    <div class="input-group">
+                        <input type="text" id="setting-pc-name" class="setting-input" placeholder="Enter PC Name">
+                        <button class="btn" style="width: 80px; padding: 8px;" onclick="savePCName()">Save</button>
+                    </div>
+
+                    <label class="setting-label">Download Location</label>
+                    <div class="input-group">
+                        <span id="setting-path" style="font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;">...</span>
+                        <button class="btn btn-secondary" style="width: auto; padding: 8px 15px; border:none; background: rgba(255,255,255,0.1);" onclick="changePath()">Change</button>
+                    </div>
+                </div>
+
+                <div class="dev-card">
+                    <p style="font-size: 12px; color: #a1a1aa; margin-bottom: 5px;">CREATED & DEVELOPED BY</p>
+                    <div class="dev-name">Pasindu Sandamal</div>
+                    <div class="dev-role">Full Stack Developer</div>
+                    
+                    <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                        Orbit Share is designed for lightning-fast local file transfers, media streaming, and remote control without internet dependency.
+                    </p>
+
+                    <div class="social-links">
+                        <button class="social-btn" onclick="openLink('https://linkedin.com')" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></button>
+                        <button class="social-btn" onclick="openLink('https://github.com')" title="GitHub"><i class="fa-brands fa-github"></i></button>
+                        <button class="social-btn" onclick="openLink('mailto:pasindu@example.com')" title="Email"><i class="fa-regular fa-envelope"></i></button>
+                    </div>
+
+                    <div style="margin-top: 25px; font-size: 11px; color: #555; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                        Version 1.0.0 &nbsp;•&nbsp; Built in Sri Lanka 🇱🇰
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/ui.js"></script>
+    <script src="js/files.js"></script>
+    <script src="js/clipboard.js"></script>
+    <script src="js/settings.js"></script>
+    <script>
+        function openLink(url) {
+            window.electronAPI.openExternalLink(url);
+        }
+    </script>
+</body>
+</html>
